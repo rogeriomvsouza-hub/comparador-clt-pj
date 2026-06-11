@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comparador CLT × PJ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+  <style>
+    /* ── Reset ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Base ──────────────────────────────────────────── */
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #F0F5FA;
+      color: #1E293B;
+      font-size: 15px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Layout ────────────────────────────────────────── */
+    .container { max-width: 840px; margin: 0 auto; padding: 2.5rem 1rem 5rem; }
+
+    /* ── Header ────────────────────────────────────────── */
+    .header-row {
+      display: flex; align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 1.75rem; gap: 12px;
+    }
+    .header-left { display: flex; align-items: center; gap: 13px; }
+    .header-icon {
+      width: 44px; height: 44px; border-radius: 13px; flex-shrink: 0;
+      background: linear-gradient(140deg, #1A9E75 0%, #046BD2 100%);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(4,107,210,0.3);
+    }
+    .header-icon svg { width: 24px; height: 24px; }
+    .header-text h1 {
+      font-size: 20px; font-weight: 700;
+      letter-spacing: -0.4px; color: #1E293B; margin-bottom: 2px;
+    }
+    .header-text .sub { font-size: 13px; color: #98A2B3; line-height: 1.4; }
+
+    /* ── Clear button ──────────────────────────────────── */
+    .btn-clear {
+      padding: 8px 16px; border-radius: 9px; font-size: 13px; font-weight: 500;
+      cursor: pointer; border: 1px solid #E7E7E7;
+      background: #fff; color: #475467; font-family: inherit;
+      white-space: nowrap; flex-shrink: 0;
+      transition: all .15s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .btn-clear:hover { background: #F0F5FA; border-color: #CBD5E1; color: #1E293B; }
+
+    /* ── Input cards ───────────────────────────────────── */
+    .card {
+      background: #fff;
+      border: 1px solid #E7E7E7;
+      border-radius: 16px;
+      padding: 1.2rem 1.4rem;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    /* ── Section titles ────────────────────────────────── */
+    .sec-title {
+      font-size: 11px; font-weight: 600; color: #98A2B3;
+      margin-bottom: 12px; text-transform: uppercase; letter-spacing: .08em;
+    }
+
+    /* ── Grid helpers ──────────────────────────────────── */
+    .row { display: grid; gap: 10px; margin-bottom: 10px; }
+    .row-2 { grid-template-columns: 1fr 1fr; }
+    .row-3 { grid-template-columns: 1fr 1fr 1fr; align-items: end; }
+
+    /* ── Labels ────────────────────────────────────────── */
+    label { font-size: 12.5px; font-weight: 500; color: #475467; display: block; margin-bottom: 5px; }
+    .field { display: flex; flex-direction: column; }
+
+    /* ── Inputs & selects ──────────────────────────────── */
+    input[type=text], input[type=number], select {
+      height: 38px; padding: 0 11px;
+      border: 1.5px solid #E7E7E7;
+      border-radius: 9px;
+      background: #F9FAFB; color: #1E293B; font-size: 14px;
+      width: 100%; font-family: inherit;
+      transition: border-color .15s, box-shadow .15s, background .12s;
+    }
+    input[type=text]:focus, input[type=number]:focus, select:focus {
+      outline: none;
+      border-color: #046BD2;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(4,107,210,0.1);
+    }
+    input[type=text]::placeholder { color: #CBD5E1; }
+
+    /* ── Checkboxes ────────────────────────────────────── */
+    .check-row { display: flex; align-items: center; gap: 7px; margin-top: 8px; font-size: 12px; color: #475467; }
+    .check-row input[type=checkbox] { width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; accent-color: #046BD2; }
+
+    /* ── Toggle ────────────────────────────────────────── */
+    .toggle-field {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 13px; background: #F0F5FA;
+      border-radius: 11px; border: 1.5px solid #E7E7E7;
+      margin-bottom: 12px; cursor: pointer;
+      transition: border-color .15s, background .12s;
+    }
+    .toggle-field:hover { border-color: #CBD5E1; background: #E8EEF7; }
+    .toggle-field input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: #046BD2; }
+    .toggle-field .tlabel { font-size: 13px; font-weight: 500; color: #334155; }
+
+    /* ── Sub-sections ──────────────────────────────────── */
+    .subsec {
+      background: #F0F5FA;
+      border-radius: 11px; padding: 12px 13px;
+      margin-bottom: 10px; border: 1px solid #E7E7E7;
+    }
+    .subsec .sec-title { margin-bottom: 8px; }
+
+    /* ── Results container ─────────────────────────────── */
+    .results { display: none; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    #results.visible { animation: fadeUp .35s cubic-bezier(.2,.6,.35,1) both; }
+
+    /* ── Result col grid ───────────────────────────────── */
+    .col-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .res-card {
+      background: #fff;
+      border: 1px solid #E7E7E7;
+      border-radius: 14px; padding: 1.1rem 1.25rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    .res-card.clt { border-top: 3px solid #1A9E75; }
+    .res-card.pj  { border-top: 3px solid #046BD2; }
+    .res-card h3  {
+      font-size: 13.5px; font-weight: 600; letter-spacing: -0.1px;
+      margin-bottom: 12px; color: #334155;
+    }
+
+    /* ── Lines in result cards ─────────────────────────── */
+    .line {
+      display: flex; justify-content: space-between;
+      align-items: center; font-size: 13px;
+      padding: 5px 0; border-bottom: 1px solid #F1F5F9;
+      gap: 8px;
+    }
+    .line .val { flex-shrink: 0; }
+    .line:last-child { border-bottom: none; }
+    .line.ded   { color: #B91C1C; }
+    .line.add   { color: #166534; }
+    .line.neu   { color: #98A2B3; font-style: italic; }
+    .line.total {
+      font-weight: 600; font-size: 14px;
+      padding-top: 10px; border-bottom: none; margin-top: 2px;
+    }
+    .line.total .val { font-size: 17px; letter-spacing: -0.4px; }
+
+    /* ── Tags ──────────────────────────────────────────── */
+    .tag {
+      display: inline-block; font-size: 10.5px; font-weight: 500;
+      padding: 2px 6px; border-radius: 5px;
+      margin-left: 5px; vertical-align: middle;
+    }
+    .tag.base { background: #FEF3C7; color: #92400E; }
+    .tag.fora { background: #F1F5F9; color: #98A2B3; border: 1px solid #E7E7E7; }
+    .tag.plr  { background: #DBEAFE; color: #1E40AF; }
+
+    /* ── Hint ──────────────────────────────────────────── */
+    .hint { font-size: 12px; color: #98A2B3; padding-top: 4px; line-height: 1.65; }
+    .sep { height: 1px; background: #F1F5F9; margin: 10px 0; }
+
+    /* ── Banner ────────────────────────────────────────── */
+    .banner {
+      display: flex; align-items: center; gap: 16px;
+      border-radius: 14px; padding: 18px 20px;
+      margin-bottom: 12px; font-size: 13px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .banner-badge {
+      font-size: 10.5px; font-weight: 700; padding: 4px 11px;
+      border-radius: 20px; white-space: nowrap;
+      letter-spacing: .05em; text-transform: uppercase;
+    }
+    .banner-text { flex: 1; }
+    .banner-text strong {
+      font-size: 19px; font-weight: 700;
+      display: block; margin-bottom: 3px;
+      letter-spacing: -0.5px;
+    }
+    .banner.pj-win  { background: #EFF6FF; border: 1px solid #BFDBFE; color: #1E3A8A; }
+    .banner.clt-win { background: #ECFDF5; border: 1px solid #A7F3D0; color: #064E3B; }
+    .banner.empate  { background: #F8FAFC; border: 1px solid #E2E8F0; color: #475467; }
+    .banner.pj-win  .banner-badge { background: #046BD2; color: #fff; }
+    .banner.clt-win .banner-badge { background: #1A9E75; color: #fff; }
+    .banner.empate  .banner-badge { background: #98A2B3; color: #fff; }
+
+    /* ── Tabs ──────────────────────────────────────────── */
+    .tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+    .tab {
+      padding: 7px 16px; border-radius: 9px; font-size: 13px; font-weight: 500;
+      cursor: pointer; border: 1px solid #E7E7E7;
+      background: #F0F5FA; color: #98A2B3; font-family: inherit;
+      transition: all .12s;
+    }
+    .tab.active {
+      background: #fff; color: #1E293B;
+      border-color: #CBD5E1;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .tab:hover:not(.active) { background: #E8EEF7; color: #334155; }
+
+    /* ── Equiv card ────────────────────────────────────── */
+    .equiv-card {
+      background: #F0F5FA; border-radius: 14px;
+      padding: 1.2rem 1.4rem; margin-bottom: 10px;
+      border: 1px solid #E7E7E7;
+    }
+    .equiv-card h3 {
+      font-size: 11px; font-weight: 600; color: #98A2B3;
+      margin-bottom: 12px; text-transform: uppercase; letter-spacing: .08em;
+    }
+    .equiv-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .metric {
+      background: #fff; border-radius: 11px; padding: 16px 12px;
+      text-align: center; border: 1px solid #E7E7E7;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .metric .lbl {
+      font-size: 11.5px; font-weight: 500;
+      color: #98A2B3; margin-bottom: 8px; line-height: 1.45;
+    }
+    .metric .val { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
+
+    /* ── Chart card ────────────────────────────────────── */
+    .chart-card {
+      background: #fff; border: 1px solid #E7E7E7;
+      border-radius: 14px; padding: 1.1rem 1.4rem;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    .chart-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+
+    /* ── Equiv detail ──────────────────────────────────── */
+    .equiv-detail {
+      background: #fff; border: 1px solid #E7E7E7;
+      border-radius: 14px; padding: 1.1rem 1.4rem;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    .equiv-detail h3 {
+      font-size: 13px; font-weight: 600;
+      color: #475467; margin-bottom: 12px;
+    }
+    .equiv-row {
+      font-size: 13px; padding: 10px 0;
+      border-bottom: 1px solid #F1F5F9;
+      line-height: 1.65; color: #334155;
+    }
+    .equiv-row:last-child { border-bottom: none; }
+    .equiv-val { font-weight: 700; color: #046BD2; }
+
+    /* ── ISS row ───────────────────────────────────────── */
+    .iss-row { display: none; }
+
+    /* ── Responsive ────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .container { padding: 1.5rem 0.75rem 4rem; }
+      .header-row { flex-direction: column; }
+      .btn-clear { align-self: flex-start; }
+      .row-2, .row-3, .col-grid, .equiv-grid-3 { grid-template-columns: 1fr; }
+      .banner { flex-direction: column; text-align: center; }
+      .banner-text strong { font-size: 17px; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header-row">
+    <div class="header-left">
+      <div class="header-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="7" width="8" height="10" rx="1.5"/>
+          <rect x="14" y="4" width="8" height="13" rx="1.5"/>
+          <line x1="10" y1="12" x2="14" y2="12"/>
+        </svg>
+      </div>
+      <div class="header-text">
+        <h1>Comparador CLT × PJ</h1>
+        <p class="sub">Compare seu líquido nos dois regimes e descubra a equivalência salarial</p>
+      </div>
+    </div>
+    <button class="btn-clear" onclick="limpar()">Limpar valores</button>
+  </div>
+
+  <div class="card">
+    <div class="sec-title">Configuração geral</div>
+    <div class="row row-2">
+      <div class="field">
+        <label>Tipo de entrada</label>
+        <select id="tipo-entrada">
+          <option value="clt">Tenho salário CLT (bruto)</option>
+          <option value="pj">Tenho faturamento PJ (mensal)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label id="lbl-valor">Salário bruto CLT (R$)</label>
+        <input type="text" id="valor" class="money" placeholder="0,00" inputmode="decimal">
+      </div>
+    </div>
+    <div class="row row-2">
+      <div class="field">
+        <label>CNAE</label>
+        <input type="text" id="cnae" placeholder="Ex: 62.01-5-01" maxlength="10" inputmode="numeric">
+      </div>
+      <div id="cnae-hint" class="hint" style="align-self:center">Informe o CNAE para identificar o enquadramento no Simples Nacional automaticamente.</div>
+    </div>
+    <div class="row row-2">
+      <div class="field">
+        <label>Atividade PJ</label>
+        <select id="atividade">
+          <option value="servicos">Serviços gerais</option>
+          <option value="consultoria">Consultoria geral</option>
+          <option value="ti">Consultoria TI</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Regime PJ</label>
+        <select id="regime">
+          <option value="simplesIII">Simples Nacional (Anexo III)</option>
+          <option value="simplesIV">Simples Nacional (Anexo IV)</option>
+          <option value="simplesV">Simples Nacional (Anexo V)</option>
+          <option value="lp">Lucro Presumido</option>
+        </select>
+      </div>
+    </div>
+    <div class="row row-2 iss-row" id="iss-row">
+      <div class="field">
+        <label>Alíquota ISS (%) — Lucro Presumido</label>
+        <input type="number" id="iss-rate" value="3" min="2" max="5" step="0.01">
+      </div>
+      <div class="hint">Varia de 2% a 5% conforme município e tipo de serviço. Padrão: 3%.</div>
+    </div>
+    <div class="row row-3">
+      <div class="field">
+        <label>Vale alimentação/refeição CLT (R$)</label>
+        <input type="text" id="va" class="money" placeholder="0,00" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label>Vale transporte CLT (R$)</label>
+        <input type="text" id="vt" class="money" placeholder="0,00" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label>Plano de saúde CLT — custeado pelo empregador (R$)</label>
+        <input type="text" id="saude" class="money" placeholder="0,00" inputmode="decimal">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec-title">Campos adicionais — CLT</div>
+    <div class="subsec">
+      <div class="sec-title">Outros proventos</div>
+      <div class="row row-2">
+        <div class="field">
+          <label>Valor mensal (R$)</label>
+          <input type="text" id="op-valor" class="money" placeholder="0,00" inputmode="decimal">
+          <div class="check-row">
+            <input type="checkbox" id="op-base">
+            <label for="op-base" style="margin:0;cursor:pointer">Integra base de INSS/IRRF e cálculo de 13º, férias e FGTS</label>
+          </div>
+        </div>
+        <div class="hint">Ex: bônus, horas extras, comissões.<br><b>Marcado:</b> entra na base fiscal e nos benefícios anuais.<br><b>Desmarcado:</b> adicionado ao líquido após os impostos, sem efeito em 13º, férias e FGTS.</div>
+      </div>
+    </div>
+    <div class="subsec">
+      <div class="sec-title">Outros descontos</div>
+      <div class="row row-2">
+        <div class="field">
+          <label>Valor mensal (R$)</label>
+          <input type="text" id="od-valor" class="money" placeholder="0,00" inputmode="decimal">
+          <div class="check-row">
+            <input type="checkbox" id="od-base">
+            <label for="od-base" style="margin:0;cursor:pointer">Reduz a base de INSS/IRRF e o cálculo de 13º, férias e FGTS</label>
+          </div>
+        </div>
+        <div class="hint">Ex: previdência complementar, sindicato.<br><b>Marcado:</b> reduz a base fiscal e a base dos benefícios anuais.<br><b>Desmarcado:</b> deduzido do líquido apenas, sem efeito em 13º, férias e FGTS.</div>
+      </div>
+    </div>
+    <div class="subsec">
+      <div class="sec-title">PLR — Participação nos lucros e resultados</div>
+      <div class="row row-2">
+        <div class="field">
+          <label>Valor anual (R$)</label>
+          <input type="text" id="plr-valor" class="money" placeholder="0,00" inputmode="decimal">
+        </div>
+        <div class="hint">Tributação exclusiva pela tabela progressiva da Lei 10.101/2000.<br><b>Isento de INSS.</b> Calculado separadamente do salário mensal.<br>Isenção até R$ 7.640 · 7,5% · 15% · 22,5% · 27,5%.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec-title">Campos adicionais — PJ</div>
+    <label class="toggle-field">
+      <input type="checkbox" id="usar-prolabore">
+      <span class="tlabel">Calcular pro-labore (contribuição ao INSS como contribuinte individual)</span>
+    </label>
+    <div id="prolabore-row" class="row row-2" style="margin-bottom:10px;display:none">
+      <div class="field">
+        <label>Pro-labore mensal (R$)</label>
+        <input type="text" id="prolabore" class="money" placeholder="0,00" inputmode="decimal">
+      </div>
+      <div class="hint">INSS 11% sobre pro-labore (contribuinte individual).<br>Lucro Presumido e Simples Anexo IV: empresa também paga INSS patronal 20% sobre pro-labore.<br>Mínimo recomendado: R$ 1.412 (salário mínimo 2025).</div>
+    </div>
+    <div class="subsec">
+      <div class="sec-title">Honorários do contador</div>
+      <div class="row row-2">
+        <div class="field">
+          <label>Valor mensal (R$)</label>
+          <input type="text" id="contador-fee" class="money" placeholder="0,00" inputmode="decimal">
+        </div>
+        <div class="hint">Custo mensal do serviço contábil. Obrigatório no regime PJ. Deduzido do líquido final.</div>
+      </div>
+    </div>
+    <div class="subsec">
+      <div class="sec-title">Outros rendimentos PJ</div>
+      <div class="row row-2">
+        <div class="field">
+          <label>Valor mensal (R$)</label>
+          <input type="text" id="or-valor" class="money" placeholder="0,00" inputmode="decimal">
+        </div>
+        <div class="hint">Ex: rendimentos financeiros, outras receitas. Somado ao líquido final.</div>
+      </div>
+    </div>
+    <div class="subsec">
+      <div class="sec-title">Outras despesas PJ</div>
+      <div class="row row-2">
+        <div class="field">
+          <label>Valor mensal (R$)</label>
+          <input type="text" id="ode-valor" class="money" placeholder="0,00" inputmode="decimal">
+        </div>
+        <div class="hint">Ex: aluguel, equipamentos, outras despesas operacionais. Deduzido do líquido final.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="results" class="results" style="margin-top:1.5rem">
+    <div id="banner-summary"></div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="setTab('mensal',this)">Mensal</div>
+      <div class="tab" onclick="setTab('anual',this)">Anual (com 13º, férias e PLR)</div>
+    </div>
+
+    <div id="painel-mensal">
+      <div class="col-grid">
+        <div class="res-card clt"><h3>CLT — mensal</h3><div id="dclt"></div></div>
+        <div class="res-card pj"><h3 id="tpj">PJ</h3><div id="dpj"></div></div>
+      </div>
+    </div>
+
+    <div id="painel-anual" style="display:none">
+      <div class="col-grid">
+        <div class="res-card clt"><h3>CLT — anual</h3><div id="dclt-a"></div></div>
+        <div class="res-card pj"><h3 id="tpj-a">PJ — anual</h3><div id="dpj-a"></div></div>
+      </div>
+    </div>
+
+    <div class="chart-card" id="chart-card">
+      <div class="sec-title">Comparativo visual</div>
+      <div class="chart-tabs">
+        <button class="tab active" onclick="switchChart('mensal',this)">Mensal</button>
+        <button class="tab" onclick="switchChart('anual',this)">Anual</button>
+      </div>
+      <canvas id="myChart" height="100"></canvas>
+    </div>
+
+    <div class="equiv-detail">
+      <h3>Equivalência salarial</h3>
+      <div id="equiv-detail-content"></div>
+    </div>
+
+    <div class="equiv-card">
+      <h3>Totais anuais</h3>
+      <div class="equiv-grid-3" id="equiv-anual"></div>
+    </div>
+
+    <div class="equiv-card" style="background:#fff;border:1px solid rgba(0,0,0,0.08);box-shadow:0 1px 4px rgba(0,0,0,0.05)">
+      <h3>Premissas utilizadas</h3>
+      <div id="notas" style="font-size:12px;color:#A09F9C;line-height:1.7"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Formatação monetária ──────────────────────────────────────────────────────
+function parseMoney(val) {
+  if (!val || val.trim() === '') return 0;
+  return parseFloat(val.replace(/\./g, '').replace(',', '.')) || 0;
+}
+function formatMoney(num) {
+  return num.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+function fmt(v) {
+  return v.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL', minimumFractionDigits: 2});
+}
+function pct(v) { return v.toFixed(2).replace('.', ',') + '%'; }
+
+// ── Tabela INSS 2024/2025 ─────────────────────────────────────────────────────
+const INSS_FAIXAS = [{ate:1412.00,a:.075},{ate:2666.68,a:.09},{ate:4000.03,a:.12},{ate:7786.02,a:.14}];
+const INSS_TETO = 908.87;
+const S3 = [{m:180000,a:.060,d:0},{m:360000,a:.112,d:9360},{m:720000,a:.132,d:17640},{m:1800000,a:.160,d:35640},{m:3600000,a:.210,d:125640},{m:Infinity,a:.330,d:648000}];
+const S4 = [{m:180000,a:.045,d:0},{m:360000,a:.090,d:8100},{m:720000,a:.102,d:12420},{m:1800000,a:.140,d:39780},{m:3600000,a:.220,d:183780},{m:Infinity,a:.330,d:828000}];
+const S5 = [{m:180000,a:.155,d:0},{m:360000,a:.180,d:4500},{m:720000,a:.195,d:9900},{m:1800000,a:.205,d:17100},{m:3600000,a:.230,d:62100},{m:Infinity,a:.305,d:540000}];
+
+// ── Base de CNAEs × enquadramento Simples Nacional ────────────────────────────
+const CNAE_DB = {
+  '6201501': { anexo: 'simplesV',   fatorR: true,  desc: 'Desenvolvimento de programas sob encomenda' },
+  '6201502': { anexo: 'simplesV',   fatorR: true,  desc: 'Desenvolvimento de páginas web' },
+  '6202300': { anexo: 'simplesV',   fatorR: true,  desc: 'Desenvolvimento de programas customizáveis' },
+  '6203100': { anexo: 'simplesIII', fatorR: false, desc: 'Desenvolvimento de programas não-customizáveis' },
+  '6204000': { anexo: 'simplesV',   fatorR: true,  desc: 'Consultoria em tecnologia da informação' },
+  '6209100': { anexo: 'simplesIII', fatorR: false, desc: 'Suporte técnico em tecnologia da informação' },
+  '6311900': { anexo: 'simplesIII', fatorR: false, desc: 'Tratamento de dados e hospedagem' },
+  '6312000': { anexo: 'simplesIII', fatorR: false, desc: 'Portais e provedores de conteúdo na internet' },
+  '7020400': { anexo: 'simplesV',   fatorR: true,  desc: 'Consultoria em gestão empresarial' },
+  '7111100': { anexo: 'simplesV',   fatorR: true,  desc: 'Serviços de arquitetura' },
+  '7112000': { anexo: 'simplesV',   fatorR: true,  desc: 'Serviços de engenharia' },
+  '7119701': { anexo: 'simplesV',   fatorR: true,  desc: 'Serviços de cartografia, topografia e geodésia' },
+  '7119702': { anexo: 'simplesV',   fatorR: true,  desc: 'Atividades de estudos geológicos' },
+  '6920601': { anexo: 'simplesIII', fatorR: false, desc: 'Atividades de contabilidade' },
+  '6920602': { anexo: 'simplesIII', fatorR: false, desc: 'Escritórios de contabilidade' },
+  '6920604': { anexo: 'simplesV',   fatorR: true,  desc: 'Auditoria contábil e tributária' },
+  '6911701': { anexo: 'simplesIV',  fatorR: false, desc: 'Serviços advocatícios' },
+  '6911702': { anexo: 'simplesIV',  fatorR: false, desc: 'Atividades auxiliares da justiça' },
+  '8630502': { anexo: 'simplesIII', fatorR: false, desc: 'Atividade médica ambulatorial — clínicas' },
+  '8630503': { anexo: 'simplesIII', fatorR: false, desc: 'Atividade odontológica com instalações' },
+  '8630506': { anexo: 'simplesIII', fatorR: false, desc: 'Serviços de vacinação e imunização humana' },
+  '8650003': { anexo: 'simplesIII', fatorR: false, desc: 'Atividades de psicologia e psicanálise' },
+  '8650004': { anexo: 'simplesIII', fatorR: false, desc: 'Atividades de fisioterapia' },
+  '8650006': { anexo: 'simplesIII', fatorR: false, desc: 'Atividades de nutrição' },
+  '8650007': { anexo: 'simplesIII', fatorR: false, desc: 'Atividades de terapia ocupacional' },
+  '7311400': { anexo: 'simplesIII', fatorR: false, desc: 'Agências de publicidade' },
+  '7312200': { anexo: 'simplesIII', fatorR: false, desc: 'Agenciamento de espaços publicitários' },
+  '7319002': { anexo: 'simplesIII', fatorR: false, desc: 'Promoção de vendas' },
+  '7410202': { anexo: 'simplesIII', fatorR: false, desc: 'Design de interiores' },
+  '7410299': { anexo: 'simplesIII', fatorR: false, desc: 'Outras atividades de design' },
+  '7420004': { anexo: 'simplesIII', fatorR: false, desc: 'Produção de fotografias' },
+  '8599604': { anexo: 'simplesIII', fatorR: false, desc: 'Treinamento e desenvolvimento profissional' },
+  '7490104': { anexo: 'simplesIII', fatorR: false, desc: 'Atividades de intermediação e agenciamento' },
+  '6630400': { anexo: 'simplesV',   fatorR: true,  desc: 'Gestão de fundos e carteiras de investimento' },
+  '4120400': { anexo: 'simplesIV',  fatorR: false, desc: 'Construção de edifícios' },
+  '4211101': { anexo: 'simplesIV',  fatorR: false, desc: 'Construção de rodovias e ferrovias' },
+  '8011101': { anexo: 'simplesIV',  fatorR: false, desc: 'Vigilância e segurança privada' },
+  '8121400': { anexo: 'simplesIV',  fatorR: false, desc: 'Limpeza em prédios e domicílios' },
+  '8122200': { anexo: 'simplesIV',  fatorR: false, desc: 'Imunização, higienização e serviços especializados' },
+  '6421200': { anexo: null, fatorR: false, desc: 'Bancos comerciais' },
+  '6422100': { anexo: null, fatorR: false, desc: 'Bancos múltiplos com carteira comercial' },
+  '6511101': { anexo: null, fatorR: false, desc: 'Seguros de vida' },
+  '6512000': { anexo: null, fatorR: false, desc: 'Seguros não-vida' },
+  '6491300': { anexo: null, fatorR: false, desc: 'Factoring' },
+  '6612601': { anexo: null, fatorR: false, desc: 'Corretoras de títulos e valores mobiliários' },
+  '6613400': { anexo: null, fatorR: false, desc: 'Administradoras de cartões de crédito' },
+};
+
+let _cnaeLocked = false;
+
+function applyCNAEMask(digits) {
+  const d = digits.replace(/\D/g, '').slice(0, 7);
+  if (d.length <= 2) return d;
+  if (d.length <= 4) return d.slice(0,2) + '.' + d.slice(2);
+  if (d.length <= 5) return d.slice(0,2) + '.' + d.slice(2,4) + '-' + d.slice(4);
+  if (d.length <= 6) return d.slice(0,2) + '.' + d.slice(2,4) + '-' + d.slice(4,5) + '-' + d.slice(5);
+  return d.slice(0,2) + '.' + d.slice(2,4) + '-' + d.slice(4,5) + '-' + d.slice(5,7);
+}
+
+// ── Funções de imposto ────────────────────────────────────────────────────────
+function calcINSS_CLT(base) {
+  let r = 0, p = 0;
+  for (const x of INSS_FAIXAS) { if (base <= p) break; r += (Math.min(base, x.ate) - p) * x.a; p = x.ate; }
+  return Math.min(r, INSS_TETO);
+}
+function calcIRRF(b) {
+  if (b <= 2259.20) return 0;
+  if (b <= 2826.65) return b * .075 - 169.44;
+  if (b <= 3751.05) return b * .15  - 381.44;
+  if (b <= 4664.68) return b * .225 - 662.77;
+  return b * .275 - 896;
+}
+function calcIRRF_PLR(v) {
+  if (v <= 7640)     return 0;
+  if (v <= 10101.18) return v * .075 - 573;
+  if (v <= 12665.90) return v * .15  - 1331.09;
+  if (v <= 15227.85) return v * .225 - 2121.43;
+  return v * .275 - 2883.24;
+}
+function calcINSS_CI(pl) { return Math.min(pl * .11, INSS_TETO); }
+function ae(r12, t) {
+  for (const f of t) { if (r12 <= f.m) return f.d === 0 ? f.a : (r12 * f.a - f.d) / r12; }
+  return t[t.length - 1].a;
+}
+
+// ── Calculadoras compostas ────────────────────────────────────────────────────
+function calcCLT(bruto, va, vt, saude, opVal, opBase, odVal, odBase, plrVal) {
+  const baseFiscal = bruto + (opBase ? opVal : 0) - (odBase ? odVal : 0);
+  const inss = calcINSS_CLT(baseFiscal);
+  const irrf = calcIRRF(baseFiscal - inss);
+  const liquidoMensal = bruto - inss - irrf + (opBase ? 0 : opVal) - odVal + va + vt;
+  const irrf_plr = calcIRRF_PLR(plrVal);
+  return { bruto, baseFiscal, inss, irrf, liquidoMensal, va, vt, saude, opVal, opBase, odVal, fgts: baseFiscal * .08, baseAnual: baseFiscal, plrVal, irrf_plr, plr_liq: plrVal - irrf_plr };
+}
+function calcPJ(fat, regime, usarPl, prolabore, orVal, odeVal, contadorFee, issRate) {
+  const r12 = fat * 12;
+  let imposto = 0, aliqef = 0, iss = 0, pis = 0, cof = 0, irpj = 0, csll = 0, cpp = 0;
+  if (regime === 'simplesIII') { aliqef = ae(r12, S3); imposto = fat * aliqef; }
+  else if (regime === 'simplesIV') { aliqef = ae(r12, S4); imposto = fat * aliqef; }
+  else if (regime === 'simplesV') { aliqef = ae(r12, S5); imposto = fat * aliqef; }
+  else {
+    const issR = (issRate || 3) / 100;
+    iss = fat * issR; pis = fat * .0065; cof = fat * .03;
+    const irpj_b = fat * .32;
+    irpj = irpj_b * .15 + (irpj_b > 20000 ? (irpj_b - 20000) * .1 : 0);
+    csll = fat * .32 * .09;
+    imposto = iss + pis + cof + irpj + csll; aliqef = imposto / fat;
+  }
+  let inss_pl = 0, irrf_pl = 0, pl_liq = 0, pl_usado = 0;
+  if (usarPl) {
+    pl_usado = prolabore; inss_pl = calcINSS_CI(prolabore); irrf_pl = calcIRRF(prolabore - inss_pl);
+    pl_liq = prolabore - inss_pl - irrf_pl;
+    if (regime === 'lp' || regime === 'simplesIV') cpp = prolabore * .20;
+  }
+  const lucro = fat - imposto - pl_usado - cpp;
+  const liquido = pl_liq + (lucro > 0 ? lucro : 0) + orVal - odeVal - contadorFee;
+  return { imposto, aliqef, inss_pl, irrf_pl, pl_liq, lucro, liquido, fat, prolabore: pl_usado, usarPl, orVal, odeVal, contadorFee, cpp, iss, pis, cof, irpj, csll };
+}
+
+// ── Busca de equivalência (bissecção) ─────────────────────────────────────────
+function buscarCLTEquiv(alvo, va, vt, saude, opVal, opBase, odVal, odBase, plrVal) {
+  let lo = alvo * .3, hi = alvo * 6;
+  for (let i = 0; i < 80; i++) { const m = (lo + hi) / 2; calcCLT(m, va, vt, saude, opVal, opBase, odVal, odBase, plrVal).liquidoMensal < alvo ? lo = m : hi = m; }
+  return (lo + hi) / 2;
+}
+function buscarPJEquiv(alvo, regime, usarPl, prolabore, orVal, odeVal, contadorFee, issRate) {
+  let lo = alvo * .3, hi = alvo * 8;
+  for (let i = 0; i < 80; i++) { const m = (lo + hi) / 2; calcPJ(m, regime, usarPl, prolabore, orVal, odeVal, contadorFee, issRate).liquido < alvo ? lo = m : hi = m; }
+  return (lo + hi) / 2;
+}
+
+// ── Helpers de HTML ───────────────────────────────────────────────────────────
+function L(lbl, val, cls) { return `<div class="line ${cls||''}"><span>${lbl}</span><span class="val">${fmt(val)}</span></div>`; }
+function Ltag(lbl, val, cls, tag, tagcls) { return `<div class="line ${cls||''}"><span>${lbl}<span class="tag ${tagcls||''}">${tag}</span></span><span class="val">${fmt(val)}</span></div>`; }
+function M(lbl, val, color) { return `<div class="metric"><div class="lbl">${lbl}</div><div class="val" style="color:${color||'#111110'}">${fmt(val)}</div></div>`; }
+
+// ── Estado do gráfico ─────────────────────────────────────────────────────────
+let _chartData = null, _chartInst = null, _chartMode = 'mensal';
+
+function switchChart(mode, el) {
+  _chartMode = mode;
+  document.querySelectorAll('.chart-tabs .tab').forEach(x => x.classList.remove('active'));
+  el.classList.add('active');
+  if (_chartData) renderChart();
+}
+function renderChart() {
+  if (typeof Chart === 'undefined' || !_chartData) { document.getElementById('chart-card').style.display = 'none'; return; }
+  const { clt_m, pj_m, clt_a, pj_a } = _chartData;
+  const isA = _chartMode === 'anual';
+  const ctx = document.getElementById('myChart').getContext('2d');
+  if (_chartInst) _chartInst.destroy();
+  _chartInst = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['CLT', 'PJ'],
+      datasets: [{ label: isA ? 'Total anual líquido' : 'Líquido mensal', data: [isA ? clt_a : clt_m, isA ? pj_a : pj_m], backgroundColor: ['rgba(26,158,117,0.82)', 'rgba(4,107,210,0.82)'], borderRadius: 7, borderSkipped: false }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${c.raw.toLocaleString('pt-BR', {style:'currency',currency:'BRL'})}` } }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: v => 'R$ ' + v.toLocaleString('pt-BR'), font: { family: 'Inter', size: 12 } } },
+        y: { grid: { display: false }, ticks: { font: { family: 'Inter', size: 13, weight: '600' } } }
+      }
+    }
+  });
+}
+
+// ── Abas ──────────────────────────────────────────────────────────────────────
+function setTab(t, el) {
+  document.querySelectorAll('.tabs .tab').forEach(x => x.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('painel-mensal').style.display = t === 'mensal' ? '' : 'none';
+  document.getElementById('painel-anual').style.display  = t === 'anual'  ? '' : 'none';
+}
+
+// ── Limpar ────────────────────────────────────────────────────────────────────
+function limpar() {
+  document.querySelectorAll('input.money').forEach(inp => { inp.value = ''; });
+  document.getElementById('iss-rate').value = '3';
+  document.getElementById('op-base').checked = false;
+  document.getElementById('od-base').checked = false;
+  document.getElementById('usar-prolabore').checked = false;
+  document.getElementById('prolabore-row').style.display = 'none';
+  document.getElementById('tipo-entrada').value = 'clt';
+  document.getElementById('lbl-valor').textContent = 'Salário bruto CLT (R$)';
+  document.getElementById('atividade').value = 'servicos';
+  document.getElementById('regime').value = 'simplesIII';
+  document.getElementById('iss-row').style.display = 'none';
+  const res = document.getElementById('results');
+  res.style.display = 'none';
+  res.classList.remove('visible');
+  document.getElementById('banner-summary').innerHTML = '';
+  document.getElementById('cnae').value = '';
+  const ch = document.getElementById('cnae-hint');
+  ch.textContent = 'Informe o CNAE para identificar o enquadramento no Simples Nacional automaticamente.';
+  ch.style.color = '';
+  _cnaeLocked = false;
+}
+
+// ── Cálculo principal ─────────────────────────────────────────────────────────
+let _dbt;
+function recalcular() { clearTimeout(_dbt); _dbt = setTimeout(calcular, 150); }
+
+function calcular() {
+  const v          = parseMoney(document.getElementById('valor').value);
+  const regime     = document.getElementById('regime').value;
+  const usarPl     = document.getElementById('usar-prolabore').checked;
+  const prolabore  = parseMoney(document.getElementById('prolabore').value);
+  const va         = parseMoney(document.getElementById('va').value);
+  const vt         = parseMoney(document.getElementById('vt').value);
+  const saude      = parseMoney(document.getElementById('saude').value);
+  const opVal      = parseMoney(document.getElementById('op-valor').value);
+  const opBase     = document.getElementById('op-base').checked;
+  const odVal      = parseMoney(document.getElementById('od-valor').value);
+  const odBase     = document.getElementById('od-base').checked;
+  const plrVal     = parseMoney(document.getElementById('plr-valor').value);
+  const orVal      = parseMoney(document.getElementById('or-valor').value);
+  const odeVal     = parseMoney(document.getElementById('ode-valor').value);
+  const contadorFee= parseMoney(document.getElementById('contador-fee').value);
+  const issRate    = parseFloat(document.getElementById('iss-rate').value) || 3;
+
+  if (v === 0) {
+    const res = document.getElementById('results');
+    res.style.display = 'none';
+    res.classList.remove('visible');
+    return;
+  }
+
+  const clt = calcCLT(v, va, vt, saude, opVal, opBase, odVal, odBase, plrVal);
+  const pj  = calcPJ(v, regime, usarPl, prolabore, orVal, odeVal, contadorFee, issRate);
+
+  const titpj = 'PJ — ' + (regime === 'simplesIII' ? 'Simples III' : regime === 'simplesIV' ? 'Simples IV' : regime === 'simplesV' ? 'Simples V' : 'Lucro Presumido');
+  document.getElementById('tpj').textContent   = titpj;
+  document.getElementById('tpj-a').textContent = titpj + ' — anual';
+
+  // CLT mensal
+  let hc = '';
+  hc += L('Salário bruto', clt.bruto, '');
+  if (opVal > 0 && opBase)  hc += Ltag('(+) Outros proventos', opVal, 'add', 'na base', 'base');
+  if (odVal > 0)             hc += Ltag('(-) Outros descontos', -odVal, 'ded', odBase ? 'reduz base' : 'não reduz', odBase ? 'base' : 'fora');
+  if (clt.baseFiscal !== clt.bruto) hc += L('Base fiscal (INSS/IRRF)', clt.baseFiscal, 'neu');
+  hc += L('(-) INSS', -clt.inss, 'ded');
+  hc += L('(-) IRRF', -clt.irrf, 'ded');
+  if (va > 0)    hc += L('(+) Vale alimentação/refeição', va, 'add');
+  if (vt > 0)    hc += L('(+) Vale transporte', vt, 'add');
+  if (saude > 0) hc += Ltag('(+) Plano de saúde', saude, 'neu', 'empregador', 'fora');
+  if (opVal > 0 && !opBase) hc += Ltag('(+) Outros proventos', opVal, 'add', 'fora da base', 'fora');
+  hc += `<div class="line total"><span>Líquido mensal</span><span class="val">${fmt(clt.liquidoMensal)}</span></div>`;
+  document.getElementById('dclt').innerHTML = hc;
+
+  // PJ mensal
+  let hp = '';
+  hp += L('Faturamento', pj.fat, '');
+  if (regime === 'lp') {
+    hp += L('(-) ISS',    -pj.iss,  'ded');
+    hp += L('(-) PIS',    -pj.pis,  'ded');
+    hp += L('(-) COFINS', -pj.cof,  'ded');
+    hp += L('(-) IRPJ',   -pj.irpj, 'ded');
+    hp += L('(-) CSLL',   -pj.csll, 'ded');
+  } else {
+    hp += L(`(-) DAS Simples (${pct(pj.aliqef)})`, -pj.imposto, 'ded');
+  }
+  if (pj.usarPl) {
+    hp += L('(-) Pro-labore bruto', -pj.prolabore, 'ded');
+    if (pj.cpp > 0) hp += L('(-) INSS patronal empresa (20%)', -pj.cpp, 'ded');
+    hp += L('   (-) INSS sócio (11%)',  -pj.inss_pl, 'ded');
+    hp += L('   (-) IRRF pro-labore',  -pj.irrf_pl, 'ded');
+    hp += L('   Pro-labore líquido', pj.pl_liq, 'add');
+  }
+  hp += L('(+) Lucro distribuído (isento IR)', Math.max(pj.lucro, 0), 'add');
+  if (contadorFee > 0) hp += L('(-) Honorários contador', -contadorFee, 'ded');
+  if (odeVal > 0)      hp += L('(-) Outras despesas',     -odeVal,      'ded');
+  if (orVal > 0)       hp += L('(+) Outros rendimentos',   orVal,       'add');
+  hp += `<div class="line total"><span>Líquido mensal</span><span class="val">${fmt(pj.liquido)}</span></div>`;
+  document.getElementById('dpj').innerHTML = hp;
+
+  // Anual
+  const inss_13  = calcINSS_CLT(clt.baseAnual);
+  const irrf_13  = calcIRRF(clt.baseAnual - inss_13);
+  const dec13    = clt.baseAnual - inss_13 - irrf_13;
+  const ferias   = dec13 * (4 / 3);
+  const clt_anual = clt.liquidoMensal * 12 + dec13 + ferias + clt.plr_liq;
+  const pj_anual  = pj.liquido * 12;
+
+  let hca = '';
+  hca += L('Líquido mensal × 12', clt.liquidoMensal * 12, '');
+  hca += L('(+) 13º salário líquido', dec13, 'add');
+  hca += L('(+) Férias + 1/3', ferias, 'add');
+  if (plrVal > 0) {
+    hca += Ltag('(+) PLR bruto', plrVal, '', 'Lei 10.101', 'plr');
+    hca += L('(-) IRRF sobre PLR', -clt.irrf_plr, 'ded');
+    hca += L('PLR líquido', clt.plr_liq, 'add');
+  }
+  hca += L('FGTS depositado (8%)', clt.fgts * 12, 'neu');
+  hca += `<div class="line total"><span>Total anual (sem FGTS)</span><span class="val">${fmt(clt_anual)}</span></div>`;
+  document.getElementById('dclt-a').innerHTML = hca;
+
+  let hpa = '';
+  hpa += L('Líquido mensal × 12', pj.liquido * 12, '');
+  hpa += `<div class="line total"><span>Total anual</span><span class="val">${fmt(pj_anual)}</span></div>`;
+  document.getElementById('dpj-a').innerHTML = hpa;
+
+  // Totais anuais
+  const diff_anual = clt_anual - pj_anual;
+  document.getElementById('equiv-anual').innerHTML =
+    M('Total anual CLT líquido', clt_anual, '#1A9E75') +
+    M('Total anual PJ líquido',  pj_anual,  '#046BD2') +
+    M('Diferença anual (CLT − PJ)', diff_anual, diff_anual >= 0 ? '#166534' : '#B91C1C');
+
+  // Banner
+  const diffPJ  = pj_anual - clt_anual;
+  const pctDiff = Math.abs(diffPJ) / (clt_anual || 1);
+  let bHtml = '';
+  if (pctDiff < 0.02) {
+    bHtml = `<div class="banner empate"><span class="banner-badge">Equivalentes</span><div class="banner-text"><strong>CLT e PJ praticamente iguais</strong>Diferença menor que 2% ao ano</div></div>`;
+  } else if (diffPJ > 0) {
+    bHtml = `<div class="banner pj-win"><span class="banner-badge">PJ vence</span><div class="banner-text"><strong>${fmt(diffPJ)} a mais por ano como PJ</strong>${fmt(pj.liquido)}/mês líquido PJ · ${fmt(clt.liquidoMensal)}/mês CLT</div></div>`;
+  } else {
+    bHtml = `<div class="banner clt-win"><span class="banner-badge">CLT vence</span><div class="banner-text"><strong>${fmt(-diffPJ)} a mais por ano como CLT</strong>${fmt(clt.liquidoMensal)}/mês líquido CLT · ${fmt(pj.liquido)}/mês PJ</div></div>`;
+  }
+  document.getElementById('banner-summary').innerHTML = bHtml;
+
+  // Equivalência
+  const cltEq = buscarCLTEquiv(pj.liquido, va, vt, saude, opVal, opBase, odVal, odBase, plrVal);
+  const pjEq  = buscarPJEquiv(clt.liquidoMensal, regime, usarPl, prolabore, orVal, odeVal, contadorFee, issRate);
+  document.getElementById('equiv-detail-content').innerHTML =
+    `<div class="equiv-row">Para ter o mesmo líquido mensal do <b>PJ</b> (${fmt(pj.liquido)}), você precisaria de CLT com salário bruto de <span class="equiv-val">${fmt(cltEq)}</span>.</div>` +
+    `<div class="equiv-row">Para ter o mesmo líquido mensal do <b>CLT</b> (${fmt(clt.liquidoMensal)}), você precisaria faturar <span class="equiv-val">${fmt(pjEq)}</span> como PJ.</div>`;
+
+  // Gráfico
+  _chartData = { clt_m: clt.liquidoMensal, pj_m: pj.liquido, clt_a: clt_anual, pj_a: pj_anual };
+  renderChart();
+
+  // Premissas
+  const atLbl = { servicos: 'Serviços gerais', consultoria: 'Consultoria geral', ti: 'Consultoria TI' }[document.getElementById('atividade').value];
+  const issTexto = regime === 'lp' ? `ISS ${issRate}%, ` : '';
+  document.getElementById('notas').innerHTML =
+    `Atividade: ${atLbl} · Regime: ${titpj} · ` +
+    `INSS CLT 2024/2025 progressivo (teto R$ 908,87) · IRRF: isento até R$ 2.259,20 · ` +
+    (usarPl ? `Pro-labore PJ ${fmt(prolabore)}, INSS contribuinte individual 11%` + (regime === 'lp' || regime === 'simplesIV' ? ' + INSS patronal empresa 20%' : '') + ' · ' : 'Pro-labore não calculado · ') +
+    `Lucros PJ distribuídos isentos de IR (Lei 9.249/1995, art. 10) · ` +
+    `Simples Nacional: alíquota efetiva sobre RBT12 projetado (faturamento × 12) · ` +
+    `Lucro Presumido: presunção 32%, ${issTexto}PIS 0,65%, COFINS 3%, IRPJ 15% + adicional 10% (base > R$20.000/mês), CSLL 9% · ` +
+    `PLR: tabela exclusiva Lei 10.101/2000, isento até R$7.640, sem incidência de INSS · ` +
+    `13º e férias calculados sobre base fiscal ajustada · ` +
+    `FGTS exibido como informativo (depositado pelo empregador, não compõe o líquido).`;
+
+  const res = document.getElementById('results');
+  res.classList.remove('visible');
+  res.style.display = 'block';
+  void res.offsetWidth; // force reflow para reiniciar a animação
+  res.classList.add('visible');
+}
+
+// ── Eventos ───────────────────────────────────────────────────────────────────
+document.getElementById('tipo-entrada').addEventListener('change', function () {
+  document.getElementById('lbl-valor').textContent = this.value === 'clt' ? 'Salário bruto CLT (R$)' : 'Faturamento PJ mensal (R$)';
+  recalcular();
+});
+document.getElementById('atividade').addEventListener('change', function () {
+  if (!_cnaeLocked) {
+    document.getElementById('regime').value = { servicos: 'simplesIII', consultoria: 'simplesV', ti: 'simplesIII' }[this.value];
+    document.getElementById('iss-row').style.display = 'none';
+  }
+  recalcular();
+});
+document.getElementById('regime').addEventListener('change', function () {
+  if (_cnaeLocked && this.value !== 'lp') {
+    alert('Esse CNAE não pode ser enquadrado no Simples Nacional.');
+    this.value = 'lp';
+    return;
+  }
+  document.getElementById('iss-row').style.display = this.value === 'lp' ? 'grid' : 'none';
+  recalcular();
+});
+document.getElementById('usar-prolabore').addEventListener('change', function () {
+  document.getElementById('prolabore-row').style.display = this.checked ? 'grid' : 'none';
+  recalcular();
+});
+document.getElementById('iss-rate').addEventListener('input', recalcular);
+document.querySelectorAll('input[type=checkbox]').forEach(cb => cb.addEventListener('change', recalcular));
+
+// ── Campo CNAE ────────────────────────────────────────────────────────────────
+document.getElementById('cnae').addEventListener('input', function () {
+  this.value = this.value.replace(/\D/g, '').slice(0, 7);
+});
+document.getElementById('cnae').addEventListener('blur', function () {
+  const digits = this.value.replace(/\D/g, '');
+  const hint = document.getElementById('cnae-hint');
+  if (digits.length === 0) {
+    this.value = '';
+    hint.textContent = 'Informe o CNAE para identificar o enquadramento no Simples Nacional automaticamente.';
+    hint.style.color = '';
+    _cnaeLocked = false;
+    return;
+  }
+  this.value = applyCNAEMask(digits);
+  if (digits.length < 7) {
+    hint.textContent = 'CNAE deve ter 7 dígitos. Ex: 6201501 → 62.01-5-01.';
+    hint.style.color = '#B91C1C';
+    return;
+  }
+  const entry = CNAE_DB[digits];
+  if (!entry) {
+    hint.innerHTML = `CNAE <b>${this.value}</b> não encontrado na base. Selecione o regime manualmente.`;
+    hint.style.color = '#98A2B3';
+    _cnaeLocked = false;
+    return;
+  }
+  if (entry.anexo === null) {
+    hint.innerHTML = `<b>${entry.desc}</b> — Não permitido no Simples Nacional. Regime definido como Lucro Presumido.`;
+    hint.style.color = '#B91C1C';
+    _cnaeLocked = true;
+    document.getElementById('regime').value = 'lp';
+    document.getElementById('iss-row').style.display = 'grid';
+  } else {
+    const nomes = { simplesIII: 'Simples Nacional (Anexo III)', simplesIV: 'Simples Nacional (Anexo IV)', simplesV: 'Simples Nacional (Anexo V)' };
+    const fatorRnota = entry.fatorR ? ' · Sujeito ao Fator R (pro-labore ≥ 28% da RBT pode migrar para Anexo III).' : '';
+    hint.innerHTML = `<b>${entry.desc}</b> — Enquadrado no <b>${nomes[entry.anexo]}</b>.${fatorRnota}`;
+    hint.style.color = '#166534';
+    _cnaeLocked = false;
+    document.getElementById('regime').value = entry.anexo;
+    document.getElementById('iss-row').style.display = 'none';
+  }
+  recalcular();
+});
+
+// ── Inputs monetários ─────────────────────────────────────────────────────────
+document.querySelectorAll('input.money').forEach(inp => {
+  inp.addEventListener('input', function () {
+    const pos = this.selectionStart;
+    const before = this.value;
+    const cleaned = before.replace(/[^\d,.]/g, '');
+    if (cleaned !== before) {
+      this.value = cleaned;
+      this.setSelectionRange(Math.max(0, pos - (before.length - cleaned.length)), Math.max(0, pos - (before.length - cleaned.length)));
+    }
+    recalcular();
+  });
+  inp.addEventListener('blur', function () {
+    const val = this.value.trim();
+    if (val === '') return;
+    const num = parseMoney(val);
+    this.value = num > 0 ? formatMoney(num) : '';
+  });
+});
+</script>
+</body>
+</html>

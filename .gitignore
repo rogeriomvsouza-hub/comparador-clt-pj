@@ -1,0 +1,5 @@
+# Versões de backup
+comparador-clt-pj_*.html
+
+# Pasta interna do Claude Code
+.claude/
